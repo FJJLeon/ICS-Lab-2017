@@ -1,0 +1,247 @@
+#######################################################################
+# Test for copying block of size 4;
+#######################################################################
+	.pos 0
+main:	irmovq Stack, %rsp  	# Set up stack pointer
+
+	# Set up arguments for copy function and then invoke it
+	irmovq $4, %rdx		# src and dst have 4 elements
+	irmovq dest, %rsi	# dst array
+	irmovq src, %rdi	# src array
+	call ncopy		 
+	halt			# should halt with num nonzeros in %rax
+StartFun:
+##################################################################
+# Junjie Fang  516030910006 
+# 1.merge irmovq and addq to iaddq 	
+# 2.merge (subq $-1, %rdx) and (andq %rdx, %rdx) 
+# 3.use six*six unrolling 	
+# 
+#/* $begin ncopy-ys */
+##################################################################
+# ncopy.ys - Copy a src block of len words to dst.
+# Return the number of positive words (>0) contained in src.
+#
+# Include your name and ID here.
+#
+# Describe how and why you modified the baseline code.
+#
+##################################################################
+# Do not modify this portion
+# Function prologue.
+# %rdi = src, %rsi = dst, %rdx = len
+ncopy:
+
+##################################################################
+# You can modify this portion
+	# Loop header
+	#xorq %rax,%rax		# count = 0;
+	iaddq $-10, %rdx
+	#andq %rdx,%rdx		# len <= 0?
+	#jle Done		# if so, goto Done:
+	jl notenough
+Loop:
+	mrmovq (%rdi), %r10	# read val from src...
+	mrmovq 0x8(%rdi), %r11
+	rmmovq %r10, (%rsi)	# ...and store it to dst
+	andq %r10, %r10		# val <= 0? 
+	jle two		# if so, goto Npos:
+	iaddq $1, %rax      # count++
+two:
+	rmmovq %r11, 0x8(%rsi)
+	andq %r11, %r11
+	#jg addtwo
+	jle three
+	iaddq $1, %rax      # count++
+three:
+	mrmovq 0x10(%rdi), %r10
+	mrmovq 0x18(%rdi), %r11
+	rmmovq %r10, 0x10(%rsi)
+	andq %r10, %r10
+	#jg addthree
+	jle four
+	iaddq $1, %rax		# count++	
+four:
+	rmmovq %r11, 0x18(%rsi)  
+	andq %r11, %r11
+	#jg addfour
+	jle five
+	iaddq $1, %rax      # count++ 
+five:
+	mrmovq 0x20(%rdi), %r10
+	mrmovq 0x28(%rdi), %r11
+	rmmovq %r10, 0x20(%rsi)
+	andq %r10, %r10
+	#jg addfive
+	jle six
+	iaddq $1, %rax      # count++ 
+six:
+	rmmovq %r11, 0x28(%rsi)
+	andq %r11, %r11
+	jle seven
+	iaddq $1, %rax      # count++
+seven:
+	mrmovq 0x30(%rdi), %r10
+    mrmovq 0x38(%rdi), %r11
+	rmmovq %r10, 0x30(%rsi)
+	andq %r10, %r10
+	jle eight
+	iaddq $1, %rax      # count++ 
+eight:
+	rmmovq %r11, 0x38(%rsi)
+	andq %r11, %r11
+	jle nine
+	iaddq $1, %rax      # count++
+nine:
+	mrmovq 0x40(%rdi), %r10
+	mrmovq 0x48(%rdi), %r11
+	rmmovq %r10, 0x40(%rsi)
+	andq %r10, %r10
+	jle ten
+	iaddq $1, %rax      # count++ 	
+ten:
+	rmmovq %r11, 0x48(%rsi)
+	andq %r11, %r11
+	jle Npos
+	iaddq $1, %rax      # count++
+Npos: 
+	iaddq $0x50, %rdi      # src++
+	iaddq $0x50, %rsi      # dst++    
+	iaddq $-10, %rdx     # len--
+	jge Loop         # if so, goto Loop: 
+
+notenough:
+	iaddq $8, %rdx	 # +8-2
+	jl last
+	
+notLoop:
+	mrmovq (%rdi), %r10 # read val from src...
+	mrmovq 0x8(%rdi), %r11
+	rmmovq %r10, (%rsi) # ...and store it to dst
+	andq %r10, %r10     # val <= 0?
+	jle nottwo     # if so, goto Npos:
+	iaddq $1, %rax      # count++
+nottwo:
+	rmmovq %r11, 0x8(%rsi)
+	andq %r11, %r11
+	jle notNpos
+	iaddq $1, %rax      # count++
+notNpos:
+	iaddq $0x10, %rdi      # src++
+	iaddq $0x10, %rsi      # dst++  
+	iaddq $-2, %rdx     # len--
+	jge notLoop         # if so, goto Loop:
+
+last:
+	iaddq $1, %rdx
+	jl Done
+	mrmovq (%rdi), %r10 # read val from src...
+	rmmovq %r10, (%rsi) # ...and store it to dst
+	andq %r10, %r10     # val <= 0?
+	jle Done
+	iaddq $1, %rax
+#	mrmovq (%rdi), %r10
+#	mrmovq 0x8(%rdi), %r11
+#	rmmovq %r10, (%rsi)
+#	andq %r10, %r10
+#	jle nottwo
+#	iaddq $1, %rax
+#nottwo:
+#	iaddq $-1, %rdx
+#	jl Done
+#	rmmovq %r11, 8(%rsi)
+#	andq %r11, %r11
+#	jle notthree
+#	iaddq $1, %rax
+#notthree:
+#	iaddq $-1, %rdx
+#	jl Done
+#	mrmovq 0x10(%rdi), %r10
+#	mrmovq 0x18(%rdi), %r11
+#	rmmovq %r10, 0x10(%rsi)
+#	andq %r10, %r10
+#	jle notfour
+#	iaddq $1, %rax
+#notfour:
+#	iaddq $-1, %rdx
+#	jl Done
+#	rmmovq %r11, 0x18(%rsi)
+#	andq %r11, %r11
+#	jle notfive
+#	iaddq $1, %rax
+#notfive:
+#	iaddq $-1, %rdx
+#	jl Done
+#	mrmovq 0x20(%rdi), %r10
+#	mrmovq 0x28(%rdi), %r11
+#	rmmovq %r10, 0x20(%rsi)
+#	andq %r10, %r10
+#	jle Done
+#	iaddq $1, %rax
+	
+#	jmp Done
+#addtwo:
+#	iaddq $1, %rax
+#	jmp three
+#addthree:
+#	iaddq $1, %rax
+#	jmp four
+#addfour:
+#	iaddq $1, %rax
+#	jmp five
+#addfive:
+##	iaddq $1, %rax
+#	jmp six
+##################################################################
+# Do not modify the following section of code
+# Function epilogue.
+Done:
+	ret
+##################################################################
+# Keep the following label at the end of your function
+End:
+#/* $end ncopy-ys */
+EndFun:
+
+###############################
+# Source and destination blocks 
+###############################
+	.align 8
+src:
+	.quad -1
+	.quad -2
+	.quad 3
+	.quad 4
+	.quad 0xbcdefa # This shouldn't get moved
+
+	.align 16
+Predest:
+	.quad 0xbcdefa
+dest:
+	.quad 0xcdefab
+	.quad 0xcdefab
+	.quad 0xcdefab
+	.quad 0xcdefab
+Postdest:
+	.quad 0xdefabc
+
+.align 8
+# Run time stack
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+	.quad 0
+
+Stack:

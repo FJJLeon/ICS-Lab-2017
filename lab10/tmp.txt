@@ -1,0 +1,16 @@
+GET http://192.168.233.134:35041/T95j5dVvIXxC6i HTTP/1.1
+GET /T95j5dVvIXxC6i HTTP/1.1
+Accept-Charset: utf-8
+Authorization: Basic YWRta67cYWRtaW4=
+Accept: image/jpeg
+
+HTTP/1.1 200 OK
+Host: www.google.com
+Authorization: Basic YWRta67cYWRtaW4=
+Server: HkRf5cLrot6Yuuy
+Content-Length: 182
+NNNNNNNNNNNNN response_body_len: 182 
+
+response content: -1040224448 
+NNNNNNNNNNNNN response_size: 308 
+se_size: 255 

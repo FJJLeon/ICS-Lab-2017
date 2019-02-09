@@ -1,0 +1,51 @@
+# Junjie Fang  516030910006
+	.pos 0
+	irmovq stack, %rsp
+	rrmovq %rsp, %rbp
+	call main
+	halt
+
+	.align 8
+ele1:
+	.quad 0x00a
+	.quad ele2
+ele2:
+	.quad 0x0b0
+	.quad ele3
+ele3:
+	.quad 0xc00
+	.quad 0
+
+main:
+	pushq %rbp
+	rrmovq %rsp, %rbp
+	irmovq ele1, %rdi
+	call rsum_list
+	popq %rbp
+	ret
+
+# long rsum_list(list_ptr ls)
+# ls in %rdi
+rsum_list:
+	pushq %rbp
+	rrmovq %rsp, %rbp
+	irmovq $0, %r8
+	subq %r8, %rdi
+	je test
+	mrmovq (%rdi), %rax
+	pushq %rax
+	mrmovq 0x8(%rdi), %rdi
+	call rsum_list
+	popq %rdx
+	addq %rdx, %rax
+	popq %rbp
+	ret
+test:
+	irmovq $0, %rax
+	popq %rbp
+	ret
+
+	.pos 0x300
+stack:
+
+/* why can not use rmmovq %rax, -0x20(%rbp) to save val*/

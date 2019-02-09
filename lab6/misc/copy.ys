@@ -1,0 +1,55 @@
+# Junjie Fang  516030910006
+	.pos 0
+	irmovq stack, %rsp
+	rrmovq %rsp, %rbp
+	call main
+	halt
+
+	.align 8
+# source block
+src:
+	.quad 0x00a
+	.quad 0x0b0
+	.quad 0xc00
+
+# destination block
+dest:
+	.quad 0x111
+	.quad 0x222
+	.quad 0x333
+
+main:
+	pushq %rbp
+	rrmovq %rsp, %rbp
+	irmovq src, %rdi
+	irmovq dest, %rsi
+	irmovq $3, %rdx
+	call copy_block
+	popq %rbp
+	ret
+
+# long copy_block(long *src, long *dest, long len) 
+# src in %rdi, dest in %rsi, len in %rdx
+copy_block:
+	pushq %rbp
+	rrmovq %rsp, %rbp
+	irmovq $0, %rax
+	irmovq $8, %r9
+	jmp test
+loop:
+	mrmovq (%rdi), %r10
+	addq %r9, %rdi
+	rmmovq %r10, (%rsi)
+	addq %r9, %rsi
+	xorq %r10, %rax
+	irmovq $1, %r8
+	subq %r8, %rdx
+test:
+	irmovq $0, %r8
+	subq %r8, %rdx
+	jg loop
+	popq %rbp
+	ret
+
+	.pos 0x200
+stack:

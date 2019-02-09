@@ -1,0 +1,12 @@
+
+touch3.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <.text>:
+   0:	48 c7 04 24 5e 53 76 	movq   $0xb76535e,(%rsp)
+   7:	0b 
+   8:	48 8d 3c 24          	lea    (%rsp),%rdi
+   c:	68 d6 18 40 00       	pushq  $0x4018d6
+  11:	c3                   	retq   
